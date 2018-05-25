@@ -3,19 +3,36 @@
 VOID KDIskstartRoutine(PVOID StartContext)
 {
 	PDISKEXTEND Me = (PDISKEXTEND)StartContext;
+	NTSTATUS status = STATUS_SUCCESS;
 	KIRQL OldIrql;
+	CHAR * Buffer = NULL;
+	LARGE_INTEGER Offset,Length = {0};
 	while (!Me->PsOffFalg)
 	{
-		if (Me->R.RequitNumber != 0)
+		if (Me->R.RequitNumber>0)
 		{
 			PLIST_ENTRY Entry = RemoveHeadList(&(Me->RequitList));
-			PIRP spirp = (PIRP)CONTAINING_RECORD(Entry,DISKEXTEND,RequitList);
+			PIRP pirp = (PIRP)CONTAINING_RECORD(Entry,DISKEXTEND,RequitList);
 			KeAcquireSpinLock(&Me->R.mutex,&OldIrql);
 			Me->R.RequitNumber--;
 			KeReleaseSpinLock(&Me->R.mutex,OldIrql);
-
+			PIO_STACK_LOCATION spirp = IoGetCurrentIrpStackLocation(pirp);
+			if (pirp->MdlAddress == NULL)
+			{
+				Buffer = (CHAR*)pirp->AssociatedIrp.SystemBuffer;
+			}
+			else
+			{
+				Buffer = (CHAR*)MmGetSystemAddressForMdlSafe(pirp->MdlAddress,NormalPagePriority);
+			}
+			if (spirp->MajorFunction == IRP_MJ_READ)
+			{
+				Offset = spirp->Parameters.Read.ByteOffset;
+				Length.QuadPart = spirp->Parameters.Read.Length;
+			}
 		}
 	}
+	PsTerminateSystemThread(status);
 	return;
 }
 

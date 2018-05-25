@@ -10,7 +10,7 @@ typedef struct DISKEX {
 	LIST_ENTRY RequitList;
 	struct {
 		ULONG RequitNumber;
-		KMUTEX mutex;
+		KSPIN_LOCK mutex;
 	}R;
 	BOOLEAN PsOffFalg;
 }DISKEXTEND,*PDISKEXTEND;

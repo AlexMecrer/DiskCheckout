@@ -3,11 +3,17 @@
 VOID KDIskstartRoutine(PVOID StartContext)
 {
 	PDISKEXTEND Me = (PDISKEXTEND)StartContext;
+	KIRQL OldIrql;
 	while (!Me->PsOffFalg)
 	{
 		if (Me->R.RequitNumber != 0)
 		{
-			
+			PLIST_ENTRY Entry = RemoveHeadList(&(Me->RequitList));
+			PIRP spirp = (PIRP)CONTAINING_RECORD(Entry,DISKEXTEND,RequitList);
+			KeAcquireSpinLock(&Me->R.mutex,&OldIrql);
+			Me->R.RequitNumber--;
+			KeReleaseSpinLock(&Me->R.mutex,OldIrql);
+
 		}
 	}
 	return;
@@ -38,7 +44,7 @@ DiskCheckAddDevice(
 			Me->FilteObject = FilteObject;
 			Me->NextObject = NextDevice;
 			InitializeListHead(&(Me->RequitList));
-			KeInitializeMutex(&(Me->R.mutex),0);
+			KeInitializeSpinLock(&Me->R.mutex);
 			Me->R.RequitNumber = 0;
 			Me->PsOffFalg = FALSE;
 			param.Me = Me;

@@ -2,7 +2,15 @@
 
 VOID KDIskstartRoutine(PVOID StartContext)
 {
-	return VOID();
+	PDISKEXTEND Me = (PDISKEXTEND)StartContext;
+	while (!Me->PsOffFalg)
+	{
+		if (Me->R.RequitNumber != 0)
+		{
+			
+		}
+	}
+	return;
 }
 
 NTSTATUS
@@ -35,6 +43,7 @@ DiskCheckAddDevice(
 			Me->PsOffFalg = FALSE;
 			param.Me = Me;
 			status=PsCreateSystemThread(&ThreadHandle,GENERIC_ALL,NULL,NULL,NULL,KDIskstartRoutine,&param);
+			goto RET;
 		}
 	}
 CLEAN:

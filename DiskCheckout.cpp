@@ -1,6 +1,11 @@
 #include "DiskCheckout.h"
 
-NTSTATUS 
+VOID KDIskstartRoutine(PVOID StartContext)
+{
+	return VOID();
+}
+
+NTSTATUS
 DiskCheckAddDevice(
 	_DRIVER_OBJECT * DriverObject,
 	_DEVICE_OBJECT * PhysicalDeviceObject
@@ -9,9 +14,12 @@ DiskCheckAddDevice(
 	NTSTATUS status = STATUS_SUCCESS;
 	PDEVICE_OBJECT FilteObject,NextDevice=NULL;
 	PDISKEXTEND Me = NULL;
+	HANDLE ThreadHandle;
+	PARAM param;
 	PAGED_CODE();
 	status=IoCreateDevice(DriverObject,sizeof(DISKEXTEND),NULL,PhysicalDeviceObject->DeviceType,
 		PhysicalDeviceObject->Characteristics,FALSE,&FilteObject);
+	RtlZeroMemory(&param,sizeof(PARAM));
 	if (NT_SUCCESS(status))
 	{
 		NextDevice=IoAttachDeviceToDeviceStack(FilteObject,PhysicalDeviceObject);
@@ -23,10 +31,18 @@ DiskCheckAddDevice(
 			Me->NextObject = NextDevice;
 			InitializeListHead(&(Me->RequitList));
 			KeInitializeMutex(&(Me->R.mutex),0);
+			Me->R.RequitNumber = 0;
+			Me->PsOffFalg = FALSE;
+			param.Me = Me;
+			status=PsCreateSystemThread(&ThreadHandle,GENERIC_ALL,NULL,NULL,NULL,KDIskstartRoutine,&param);
 		}
 	}
 CLEAN:
-	IoDeleteDevice(FilteObject);
+	if (status == STATUS_SUCCESS)
+	{
+		IoDeleteDevice(FilteObject);
+	}
+	FilteObject = NULL;
 RET:
 	return status;
 }

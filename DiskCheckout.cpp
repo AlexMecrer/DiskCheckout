@@ -1,12 +1,36 @@
 #include "DiskCheckout.h"
 
-VOID KDIskstartRoutine(PVOID StartContext)
+VOID 
+KDIskstartRoutine(
+	PVOID StartContext
+)
 {
 	PDISKEXTEND Me = (PDISKEXTEND)StartContext;
 	NTSTATUS status = STATUS_SUCCESS;
 	KIRQL OldIrql;
 	CHAR * Buffer = NULL;
-	LARGE_INTEGER Offset,Length = {0};
+	LARGE_INTEGER FileSize,Offset,Length = {0};
+	HANDLE hFile = NULL;
+	OBJECT_ATTRIBUTES attri;
+	IO_STATUS_BLOCK StatusBlock;
+	UNICODE_STRING FileName = RTL_CONSTANT_STRING(TmpFileName);
+	InitializeObjectAttributes(&attri,&FileName,OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE,NULL,NULL);
+	FileSize.QuadPart=
+	status=ZwCreateFile(&hFile,
+		GENERIC_ALL|DELETE,
+		&attri,
+		&StatusBlock,
+		&Me->DiskSize,
+		FILE_ATTRIBUTE_HIDDEN,
+		0,
+		FILE_CREATE,
+		FILE_DELETE_ON_CLOSE,
+		NULL,
+		NULL);
+	if (!NT_SUCCESS(status))
+	{
+		Me->PsOffFalg = TRUE;
+	}
 	while (!Me->PsOffFalg)
 	{
 		if (Me->R.RequitNumber>0)
@@ -30,8 +54,13 @@ VOID KDIskstartRoutine(PVOID StartContext)
 				Offset = spirp->Parameters.Read.ByteOffset;
 				Length.QuadPart = spirp->Parameters.Read.Length;
 			}
+			else if (spirp->MajorFunction == IRP_MJ_WRITE)
+			{
+
+			}
 		}
 	}
+	
 	PsTerminateSystemThread(status);
 	return;
 }

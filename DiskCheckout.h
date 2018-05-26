@@ -2,7 +2,7 @@
 
 #define HKEY L"\\HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Class\\{71A27CDD-812A-11D0-BEC7-08002BE2092F}"
 #define PATHNAME L"UpperFilters"
-
+#define TmpFileName L"AlexMecrer"
 
 typedef struct DISKEX {
 	PDEVICE_OBJECT FilteObject;
@@ -13,6 +13,8 @@ typedef struct DISKEX {
 		KSPIN_LOCK mutex;
 	}R;
 	BOOLEAN PsOffFalg;
+	LARGE_INTEGER DiskSize;
+	PRTL_BITMAP DiskMap;
 }DISKEXTEND,*PDISKEXTEND;
 
 typedef struct Param {

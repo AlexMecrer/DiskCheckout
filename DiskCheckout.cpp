@@ -37,9 +37,7 @@ KDIskstartRoutine(
 		{
 			PLIST_ENTRY Entry = RemoveHeadList(&(Me->RequitList));
 			PIRP pirp = (PIRP)CONTAINING_RECORD(Entry,DISKEXTEND,RequitList);
-			KeAcquireSpinLock(&Me->R.mutex,&OldIrql);
-			Me->R.RequitNumber--;
-			KeReleaseSpinLock(&Me->R.mutex,OldIrql);
+			InterlockedAdd(&Me->R.RequitNumber,-1);
 			PIO_STACK_LOCATION spirp = IoGetCurrentIrpStackLocation(pirp);
 			if (pirp->MdlAddress == NULL)
 			{
@@ -56,7 +54,7 @@ KDIskstartRoutine(
 			}
 			else if (spirp->MajorFunction == IRP_MJ_WRITE)
 			{
-
+				
 			}
 		}
 	}

@@ -1,6 +1,44 @@
 #include "DiskCheckout.h"
 
-VOID 
+NTSTATUS IoQDMCompletion(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp, IN PVOID Context)
+{
+	KeSetEvent((PKEVENT)Context,IO_NO_INCREMENT,FALSE);
+	return STATUS_SUCCESS;
+}
+
+NTSTATUS
+QueryDiskInformation(
+	PDEVICE_OBJECT AimObject,
+	LARGE_INTEGER TotalSize,
+	DWORD64 Cluster,
+	DWORD64 SectorSize
+)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	CHAR DBM[DBMSIZE];
+	PDP_FAT16_BOOT_SECTOR Fat16 = (PDP_FAT16_BOOT_SECTOR)DBM;
+	PDP_FAT32_BOOT_SECTOR Fat32 = (PDP_FAT32_BOOT_SECTOR)DBM;
+	PDP_NTFS_BOOT_SECTOR Ntfs = (PDP_NTFS_BOOT_SECTOR)DBM;
+	LARGE_INTEGER Offset = {0};
+	IO_STATUS_BLOCK Status = {0};
+	PIRP irp=IoBuildAsynchronousFsdRequest(IRP_MJ_READ,AimObject,DBM,DBMSIZE,&Offset,&Status);
+	KEVENT Event;
+	KeInitializeEvent(&Event,NotificationEvent,FALSE);
+	if (irp == NULL)
+	{
+		return STATUS_UNSUCCESSFUL;
+	}
+	IoSetCompletionRoutine(irp,IoQDMCompletion,&Event,TRUE,TRUE,TRUE);
+	status = IoCallDriver(AimObject,irp);
+	KeWaitForSingleObject(&Event,Executive,KernelMode,FALSE,NULL);
+	if (NT_SUCCESS(status))
+	{
+
+	}
+	return status;
+}
+
+VOID
 KDIskstartRoutine(
 	PVOID StartContext
 )
@@ -92,6 +130,7 @@ DiskCheckAddDevice(
 			Me->R.RequitNumber = 0;
 			Me->PsOffFalg = FALSE;
 			param.Me = Me;
+			DCBitMapInit(&Me->DiskMap,);
 			status=PsCreateSystemThread(&ThreadHandle,GENERIC_ALL,NULL,NULL,NULL,KDIskstartRoutine,&param);
 			goto RET;
 		}

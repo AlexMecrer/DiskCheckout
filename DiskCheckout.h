@@ -5,6 +5,18 @@
 #define TmpFileName L"AlexMecrer"
 #define DBMSIZE 512
 
+#define OMEFAT32 "FAT32   "//8 bit
+#define OMEFAT16 "FAT16   "
+#define OMENTFS "NTFS    "
+
+
+#define SET_DISKINFOR_VALUE(a,b,c,d) \
+	a->BytesPerSector=b;\
+	a->SectorsPerCluster=c;\
+	a->TotalSize.QuadPart=d
+
+
+
 typedef struct AddressNode {
 
 };
@@ -27,6 +39,11 @@ typedef struct Param {
 	PDISKEXTEND Me;
 }PARAM,PPARAM;
 
+typedef struct DiskInformation {
+	USHORT BytesPerSector;
+	UCHAR SectorsPerCluster;
+	LARGE_INTEGER TotalSize;
+}DISKINFORMATION,*PDISKINFORMATION;
 
 
 #pragma pack(1)
@@ -115,9 +132,7 @@ IoQDMCompletion(
 
 NTSTATUS QueryDiskInformation(
 	PDEVICE_OBJECT AimObject,
-	LARGE_INTEGER TotalSize,
-	DWORD64 Cluster,
-	DWORD64 SectorSize
+	PDISKINFORMATION DiskInfor
 );
 
 

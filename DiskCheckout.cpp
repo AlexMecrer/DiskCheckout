@@ -9,9 +9,7 @@ NTSTATUS IoQDMCompletion(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp, IN PVOID C
 NTSTATUS
 QueryDiskInformation(
 	PDEVICE_OBJECT AimObject,
-	LARGE_INTEGER TotalSize,
-	DWORD64 Cluster,
-	DWORD64 SectorSize
+	PDISKINFORMATION DiskInfor
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
@@ -33,7 +31,20 @@ QueryDiskInformation(
 	KeWaitForSingleObject(&Event,Executive,KernelMode,FALSE,NULL);
 	if (NT_SUCCESS(status))
 	{
-
+		if (Fat16->OEM[0] == 'F')
+		{
+			if (Fat16->OEM[3] == '3')
+			{
+				//It's a Fat32 disk
+				DiskInfor->BytesPerSector = Fat32->BytesPerSector;
+				DiskInfor->SectorsPerCluster = Fat32->SectorsPerCluster;
+				SET_DISKINFOR_VALUE(DiskInfor,Fat32->BytesPerSector,Fat32->SectorsPerCluster,
+					(Fat32->Sectors+Fat32->LargeSectors)*Fat32->BytesPerSector);
+			}
+			SET_DISKINFOR_VALUE(DiskInfor, Fat16->BytesPerSector, Fat16->SectorsPerCluster,
+				(Fat16->Sectors + Fat16->LargeSectors)*Fat16->BytesPerSector);
+		}
+		SET_DISKINFOR_VALUE(DiskInfor,Ntfs->BytesPerSector,Ntfs->SectorsPerCluster,Ntfs->BytesPerSector*Ntfs->TotalSectors);
 	}
 	return status;
 }

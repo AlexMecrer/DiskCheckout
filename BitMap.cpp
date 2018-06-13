@@ -9,7 +9,8 @@ DCBitMapInit(
 	ULONG GbSize = TotalSize.QuadPart >> 30;
 	AimMap->Table = (PMBTABLE*)ExAllocatePoolWithTag(NonPagedPool,sizeof(PMBTABLE)*GbSize,'GbS');
 	AimMap->Size = GbSize;
-	if (AimMap->Table == NULL)
+	AimMap->BeUse = (PCHAR)ExAllocatePoolWithTag(NonPagedPool,1024,'Use');
+	if (AimMap->Table == NULL||AimMap->BeUse==NULL)
 	{
 		return STATUS_UNSUCCESSFUL;
 	}
@@ -49,24 +50,31 @@ USHORT
 DCBitMapQuery(
 	PDC_BITMAP AimMap,
 	LARGE_INTEGER Startoffset,
-	PULONG Length
+	PLENGTHINFO Length
 )
 /*
 如果是部分使用那么被使用的长度将会被Length返回
 */
 {
-	ULONG Index2,Index1,Index=Startoffset.QuadPart>>30;
-	if (*Length < 1024)
+	LONG GbRegon, KbRegon;
+	LENGTHINFO BeforeHalf,EndHalf;
+	BeforeHalf = EndHalf = {0};
+	if (AimMap->BeUse[GETGB(Startoffset.QuadPart)])
 	{
-		if (AimMap->Table[Index])
-		{
-			Index1 = Startoffset.QuadPart >> 20 - Index << 10;
-			if (AimMap->Table[Index]->MbTable[Index1])
-			{
-				Index2 = Startoffset.QuadPart >> 10 - (Startoffset.QuadPart >> 20) << 10;
-
-			}
-		}
+		GbRegon=Length->GbSize - 1;
+		SET_LENGTH_VALUE(BeforeHalf,Startoffset.QuadPart);
+		SET_LENGTH_VALUE(EndHalf,Startoffset.QuadPart+Length->TotalSize);
+		
 	}
 	return NOUSE;
+}
+
+VOID 
+DCBitMaskBit(
+	PVOID AimMap,
+	ULONG Length
+)
+{
+	memset(AimMap,-1,Length);//Bug
+	return;
 }

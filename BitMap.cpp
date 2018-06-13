@@ -44,3 +44,29 @@ DCBitMapDelect(
 	}
 	return STATUS_SUCCESS;
 }
+
+USHORT 
+DCBitMapQuery(
+	PDC_BITMAP AimMap,
+	LARGE_INTEGER Startoffset,
+	PULONG Length
+)
+/*
+如果是部分使用那么被使用的长度将会被Length返回
+*/
+{
+	ULONG Index2,Index1,Index=Startoffset.QuadPart>>30;
+	if (*Length < 1024)
+	{
+		if (AimMap->Table[Index])
+		{
+			Index1 = Startoffset.QuadPart >> 20 - Index << 10;
+			if (AimMap->Table[Index]->MbTable[Index1])
+			{
+				Index2 = Startoffset.QuadPart >> 10 - (Startoffset.QuadPart >> 20) << 10;
+
+			}
+		}
+	}
+	return NOUSE;
+}

@@ -17,6 +17,10 @@ typedef struct DCBitMap {//这个是GB表
 	ULONG Size;
 }DC_BITMAP,*PDC_BITMAP;
 
+#define NOUSE -1
+#define PARTUSE 0
+#define FULLUSE 1
+
 NTSTATUS DCBitMapInit(
 	PDC_BITMAP AimMap,
 	LARGE_INTEGER TotalSize
@@ -27,8 +31,9 @@ DCBitMapDelect(
 	PDC_BITMAP AimMap
 );
 
-NTSTATUS
+USHORT
 DCBitMapQuery(
 	PDC_BITMAP AimMap,
-	LARGE_INTEGER offset
+	LARGE_INTEGER offset,
+	PULONG Length
 );

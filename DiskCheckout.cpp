@@ -122,6 +122,7 @@ DiskCheckAddDevice(
 	PDEVICE_OBJECT FilteObject,NextDevice=NULL;
 	PDISKEXTEND Me = NULL;
 	HANDLE ThreadHandle;
+	DISKINFORMATION infor = {0};
 	PARAM param;
 	PAGED_CODE();
 	status=IoCreateDevice(DriverObject,sizeof(DISKEXTEND),NULL,PhysicalDeviceObject->DeviceType,
@@ -141,7 +142,8 @@ DiskCheckAddDevice(
 			Me->R.RequitNumber = 0;
 			Me->PsOffFalg = FALSE;
 			param.Me = Me;
-			DCBitMapInit(&Me->DiskMap,);
+			QueryDiskInformation(PhysicalDeviceObject,&infor);
+			DCBitMapInit(&Me->DiskMap,infor.TotalSize);
 			status=PsCreateSystemThread(&ThreadHandle,GENERIC_ALL,NULL,NULL,NULL,KDIskstartRoutine,&param);
 			goto RET;
 		}

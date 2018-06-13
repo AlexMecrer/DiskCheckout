@@ -3,13 +3,15 @@
 NTSTATUS 
 DCBitMapInit(
 	PDC_BITMAP AimMap,
-	ULONG RegionNumber,
-	ULONG RegionSize
+	LARGE_INTEGER TotalSize
 )
 {
-	NTSTATUS status = STATUS_SUCCESS;
-	RegionNumber = (RegionNumber)+(sizeof(ULONG) - RegionNumber % sizeof(ULONG));
-	PULONG Buffer = (PULONG)ExAllocatePoolWithTag(NonPagedPool,RegionNumber,'BTP');
-	RtlInitializeBitMap(&AimMap->RegionMap,Buffer,RegionNumber);
-	return status;
+	ULONG GbSize = TotalSize.QuadPart >> 30;
+	AimMap->Table = (PMBTABLE)ExAllocatePoolWithTag(NonPagedPool,sizeof(PMBTABLE)*GbSize,'GbS');
+	if (AimMap->Table == NULL)
+	{
+		return STATUS_UNSUCCESSFUL;
+	}
+	RtlZeroBytes(AimMap->Table,sizeof(PMBTABLE)*GbSize);
+	return STATUS_SUCCESS;
 }

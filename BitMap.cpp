@@ -82,7 +82,17 @@ DCBitMapQuery(
 					{
 						return NOUSE;
 					}
-
+					Tmp = AimMap->Table[BeforeHalf.GbSize]->MbTable[BeforeHalf.MbSize]->KbTable[BeforeHalf.KbSize]->ByteTable;
+					Tmp = Tmp + BeforeHalf.ByteSize;
+					Tmp1 = (PULONG64)Tmp;
+					ULONG Size = EndHalf.ByteSize - BeforeHalf.ByteSize;
+					for (int i = 0; i < Size / sizeof(ULONG64); i++)
+					{
+						if ((Tmp1[i] != -1)&&((i+1)*sizeof(ULONG64)>Size)&&(Tmp1[i]==Size%sizeof(ULONG64)))
+						{
+							return FULLUSE;
+						}
+					}
 				}
 			}
 		}

@@ -56,15 +56,36 @@ DCBitMapQuery(
 如果是部分使用那么被使用的长度将会被Length返回
 */
 {
-	LONG GbRegon, KbRegon;
 	LENGTHINFO BeforeHalf,EndHalf;
 	BeforeHalf = EndHalf = {0};
+	PCHAR Tmp;
+	PULONG64 Tmp1;
 	if (AimMap->BeUse[GETGB(Startoffset.QuadPart)])
 	{
-		GbRegon=Length->GbSize - 1;
 		SET_LENGTH_VALUE(BeforeHalf,Startoffset.QuadPart);
 		SET_LENGTH_VALUE(EndHalf,Startoffset.QuadPart+Length->TotalSize);
-		
+		if (BeforeHalf.GbSize == EndHalf.GbSize)
+		{
+			if (!AimMap->BeUse[BeforeHalf.GbSize])
+			{
+				return NOUSE;
+			}
+			if (BeforeHalf.MbSize == EndHalf.MbSize)
+			{
+				if (!AimMap->Table[BeforeHalf.GbSize]->BeUse[BeforeHalf.MbSize])
+				{
+					return NOUSE;
+				}
+				if (BeforeHalf.KbSize == EndHalf.KbSize)
+				{
+					if (!AimMap->Table[BeforeHalf.GbSize]->MbTable[BeforeHalf.MbSize]->BeUse[BeforeHalf.KbSize])
+					{
+						return NOUSE;
+					}
+
+				}
+			}
+		}
 	}
 	return NOUSE;
 }

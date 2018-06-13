@@ -5,24 +5,31 @@
 #define GETGB(a) a >>30
 #define GETMB(a) a>>20-(a>>30)<<30
 #define GETKB(a) a>>10-(a>>20)<<20
-
+#define GETBY(a) a-(a>>10)<<10
 #define SET_LENGTH_VALUE(a,b) a.GbSize=GETGB(b);\
 	a.MbSize=GETMB(b);\
 	a.KbSize = GETKB(b);\
+	a.ByteSize=GETBY(b);\
 	a.TotalSize=b
 
 typedef struct LengthInfor{
 	ULONG GbSize;
 	ULONG MbSize;
 	ULONG KbSize;
+	ULONG ByteSize;
 	ULONGLONG TotalSize;
 }LENGTHINFO,*PLENGTHINFO;
 
 
+typedef struct ByteTable {
+	PCHAR ByteTable;
+}BYTETABLE,*PBYTETABLE;
+
 
 typedef struct KBTable {//Kb±í
-	PCHAR KbTable;
+	PBYTETABLE* KbTable;
 	ULONG Size;
+	PCHAR BeUse;
 }KBTABLE,*PKBTABLE;
 
 

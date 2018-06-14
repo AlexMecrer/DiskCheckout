@@ -9,8 +9,9 @@ DCBitMapInit(
 	ULONG GbSize = TotalSize.QuadPart >> 30;
 	AimMap->Table = (PMBTABLE*)ExAllocatePoolWithTag(NonPagedPool,sizeof(PMBTABLE)*GbSize,'GbS');
 	AimMap->Size = GbSize;
-	AimMap->BeUse = (PCHAR)ExAllocatePoolWithTag(NonPagedPool,1024,'Use');
-	if (AimMap->Table == NULL||AimMap->BeUse==NULL)
+	//AimMap->BeUse = (PCHAR)ExAllocatePoolWithTag(NonPagedPool,1024,'Use');
+	RtlInitializeBitMap(&AimMap->UserMap,(PULONG)ExAllocatePoolWithTag(NonPagedPool,1024,'Tag'),1024);
+	if (AimMap->Table == NULL)
 	{
 		return STATUS_UNSUCCESSFUL;
 	}
@@ -60,39 +61,41 @@ DCBitMapQuery(
 	BeforeHalf = EndHalf = {0};
 	PCHAR Tmp;
 	PULONG64 Tmp1;
-	if (AimMap->BeUse[GETGB(Startoffset.QuadPart)])
+	if (BeforeHalf.GbSize == EndHalf.GbSize)
 	{
 		SET_LENGTH_VALUE(BeforeHalf,Startoffset.QuadPart);
 		SET_LENGTH_VALUE(EndHalf,Startoffset.QuadPart+Length->TotalSize);
-		if (BeforeHalf.GbSize == EndHalf.GbSize)
+		if (RtlAreBitsSet(&AimMap->UserMap, BeforeHalf.GbSize, 1))
 		{
-			if (!AimMap->BeUse[BeforeHalf.GbSize])
-			{
-				return NOUSE;
-			}
 			if (BeforeHalf.MbSize == EndHalf.MbSize)
 			{
-				if (!AimMap->Table[BeforeHalf.GbSize]->BeUse[BeforeHalf.MbSize])
+				if (RtlAreBitsClear(&GET_MB_USETABLE(AimMap,BeforeHalf),BeforeHalf.MbSize,1))
 				{
 					return NOUSE;
 				}
 				if (BeforeHalf.KbSize == EndHalf.KbSize)
 				{
-					if (!AimMap->Table[BeforeHalf.GbSize]->MbTable[BeforeHalf.MbSize]->BeUse[BeforeHalf.KbSize])
+					if (RtlAreBitsClear(&GET_KB_USETABLE(AimMap,BeforeHalf),BeforeHalf.KbSize,1))
 					{
 						return NOUSE;
 					}
-					Tmp = AimMap->Table[BeforeHalf.GbSize]->MbTable[BeforeHalf.MbSize]->KbTable[BeforeHalf.KbSize]->ByteTable;
-					Tmp = Tmp + BeforeHalf.ByteSize;
-					Tmp1 = (PULONG64)Tmp;
-					ULONG Size = EndHalf.ByteSize - BeforeHalf.ByteSize;
-					for (int i = 0; i < Size / sizeof(ULONG64); i++)
+					if (RtlAreBitsSet(&GET_BYTE_USETABLE(AimMap,BeforeHalf),BeforeHalf.ByteSize, Length->ByteSize))
 					{
-						if ((Tmp1[i] != -1)&&((i+1)*sizeof(ULONG64)>Size)&&(Tmp1[i]==Size%sizeof(ULONG64)))
+						return FULLUSE;
+					}
+					return PARTUSE;
+				}
+				else
+				{
+					if (RtlAreBitsSet(&GET_KB_USETABLE(AimMap,BeforeHalf), BeforeHalf.KbSize, EndHalf.KbSize - BeforeHalf.KbSize))
+					{
+						if (RtlAreBitsSet(&GET_BYTE_USETABLE(AimMap, BeforeHalf), BeforeHalf.ByteSize, 1024 - BeforeHalf.ByteSize) &&
+							RtlAreBitsSet(&GET_BYTE_USETABLE(AimMap, EndHalf), 0, EndHalf.ByteSize))
 						{
 							return FULLUSE;
 						}
 					}
+					return PARTUSE;
 				}
 			}
 		}

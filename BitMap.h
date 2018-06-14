@@ -12,6 +12,11 @@
 	a.ByteSize=GETBY(b);\
 	a.TotalSize=b
 
+#define GET_MB_USETABLE(a,b) a->Table[b.GbSize]->UserMap 
+#define GET_KB_USETABLE(a,b) a->Table[b.GbSize]->MbTable[b.MbSize]->UserMap
+#define GET_BYTE_USETABLE(a,b) a->Table[b.GbSize]->MbTable[b.MbSize]->KbTable[b.KbSize]->UserMap
+
+
 typedef struct LengthInfor{
 	ULONG GbSize;
 	ULONG MbSize;
@@ -22,27 +27,27 @@ typedef struct LengthInfor{
 
 
 typedef struct ByteTable {
-	PCHAR ByteTable;
+	RTL_BITMAP UserMap;
 }BYTETABLE,*PBYTETABLE;
 
 
 typedef struct KBTable {//Kb表
 	PBYTETABLE* KbTable;
 	ULONG Size;
-	PCHAR BeUse;
+	RTL_BITMAP UserMap;
 }KBTABLE,*PKBTABLE;
 
 
 typedef struct MBTable {//Mb表
 	PKBTABLE* MbTable;
 	ULONG Size;
-	PCHAR BeUse;
+	RTL_BITMAP UserMap;
 }MBTABLE,*PMBTABLE;
 
 typedef struct DCBitMap {//这个是GB表
 	PMBTABLE* Table;
 	ULONG Size;
-	PCHAR BeUse;
+	RTL_BITMAP UserMap;
 }DC_BITMAP,*PDC_BITMAP;
 
 #define NOUSE -1

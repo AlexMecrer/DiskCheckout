@@ -108,6 +108,7 @@ DCBitMapQuery(
 					goto CHECK_KB;
 				}
 			}
+			return PARTUSE;
 		}
 		if (RtlAreBitsSet(&GET_GB_USETABLE(AimMap), BeforeHalf.GbSize, EndHalf.GbSize - BeforeHalf.GbSize))
 		{
@@ -121,12 +122,18 @@ DCBitMapQuery(
 	return NOUSE;
 }
 
-VOID 
-DCBitMaskBit(
-	PVOID AimMap,
-	ULONG Length
+NTSTATUS 
+DCBitMapMask(
+	PDC_BITMAP AimMap,
+	LARGE_INTEGER offset, 
+	LENGTHINFO Length
 )
 {
-	memset(AimMap,-1,Length);//Bug
-	return;
+	LENGTHINFO Offset;
+	SET_LENGTH_VALUE(Offset,offset.QuadPart);
+	if (Offset.GbSize||Length.GbSize)
+	{
+		RtlSetBits(&AimMap->UserMap,Offset.GbSize,Length.GbSize);
+	}
+	return NTSTATUS();
 }

@@ -71,8 +71,9 @@ DCBitMapQuery(
 	LARGE_INTEGER offset,
 	PLENGTHINFO Length
 );
-VOID
-DCBitMaskBit(
-	PVOID AimMap,
-	ULONG Length
+NTSTATUS
+DCBitMapMask(
+	PDC_BITMAP AimMap,
+	LARGE_INTEGER offset,
+	LENGTHINFO Length
 );

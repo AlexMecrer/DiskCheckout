@@ -12,6 +12,7 @@
 	a.ByteSize=GETBY(b);\
 	a.TotalSize=b
 
+#define GET_GB_USETABLE(a) a->UserMap
 #define GET_MB_USETABLE(a,b) a->Table[b.GbSize]->UserMap 
 #define GET_KB_USETABLE(a,b) a->Table[b.GbSize]->MbTable[b.MbSize]->UserMap
 #define GET_BYTE_USETABLE(a,b) a->Table[b.GbSize]->MbTable[b.MbSize]->KbTable[b.KbSize]->UserMap

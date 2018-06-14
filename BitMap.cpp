@@ -87,6 +87,7 @@ DCBitMapQuery(
 				}
 				else
 				{
+					CHECK_KB:
 					if (RtlAreBitsSet(&GET_KB_USETABLE(AimMap,BeforeHalf), BeforeHalf.KbSize, EndHalf.KbSize - BeforeHalf.KbSize))
 					{
 						if (RtlAreBitsSet(&GET_BYTE_USETABLE(AimMap, BeforeHalf), BeforeHalf.ByteSize, 1024 - BeforeHalf.ByteSize) &&
@@ -97,6 +98,23 @@ DCBitMapQuery(
 					}
 					return PARTUSE;
 				}
+			}
+			CHECK_MB:
+			if (RtlAreBitsSet(&GET_MB_USETABLE(AimMap, BeforeHalf), BeforeHalf.MbSize, EndHalf.MbSize - BeforeHalf.MbSize))
+			{
+				if (RtlAreBitsSet(&GET_KB_USETABLE(AimMap, BeforeHalf), BeforeHalf.KbSize, 1024 - BeforeHalf.KbSize) &&
+					RtlAreBitsSet(&GET_KB_USETABLE(AimMap, EndHalf), 0, EndHalf.KbSize))
+				{
+					goto CHECK_KB;
+				}
+			}
+		}
+		if (RtlAreBitsSet(&GET_GB_USETABLE(AimMap), BeforeHalf.GbSize, EndHalf.GbSize - BeforeHalf.GbSize))
+		{
+			if (RtlAreBitsSet(&GET_MB_USETABLE(AimMap, BeforeHalf), BeforeHalf.MbSize, 1024 - BeforeHalf.MbSize) &&
+				RtlAreBitsSet(&GET_MB_USETABLE(AimMap, EndHalf), 0, EndHalf.MbSize))
+			{
+				goto CHECK_MB;
 			}
 		}
 	}
